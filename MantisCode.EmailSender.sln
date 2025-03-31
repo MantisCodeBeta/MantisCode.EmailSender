@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MantisCode.EmailSender", "MantisCodeEmailSender\MantisCode.EmailSender.csproj", "{D7DDA139-A18A-465A-9E4A-C3ADB8ED90D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MantisCodeEmailSender.Test", "MantisCodeEmailSender.Test\MantisCodeEmailSender.Test.csproj", "{65EB06E1-C547-4B91-832D-9DAA78AF9C74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7DDA139-A18A-465A-9E4A-C3ADB8ED90D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7DDA139-A18A-465A-9E4A-C3ADB8ED90D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7DDA139-A18A-465A-9E4A-C3ADB8ED90D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7DDA139-A18A-465A-9E4A-C3ADB8ED90D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65EB06E1-C547-4B91-832D-9DAA78AF9C74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65EB06E1-C547-4B91-832D-9DAA78AF9C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65EB06E1-C547-4B91-832D-9DAA78AF9C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65EB06E1-C547-4B91-832D-9DAA78AF9C74}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
