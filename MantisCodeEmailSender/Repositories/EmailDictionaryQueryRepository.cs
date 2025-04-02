@@ -7,7 +7,7 @@ using MantisCode.EmailSender.Enums;
 
 namespace MantisCode.EmailSender.Repositories;
 
-public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
+internal class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
 {
     public async Task<EmailDictionaries?> GetEmailDictionaryByIdAsync(int id, string connectionString, DatabaseProviderEnum provider)
     {
@@ -26,6 +26,7 @@ public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
                                IsActive
                         FROM EmailDictionaries ed WITH (NOLOCK)
                         WHERE ed.Id = @Id
+                        AND ed.IsActive = 1
                         """;
 
                 using var connection = new SqlConnection(connectionString);
@@ -43,6 +44,7 @@ public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
                                IsActive
                         FROM "EmailDictionaries"
                         WHERE Id = @Id
+                        AND IsActive = true
                         """;
 
                 using var connection = new NpgsqlConnection(connectionString);
