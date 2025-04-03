@@ -5,6 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
+    <Authors>RuthLess1303</Authors>
+    <Company>MantisCodeBeta</Company>
+    <RepositoryUrl>https://github.com/MantisCodeBeta/MantisCodeBeta.EmailSender</RepositoryUrl>
+    <PackageId>MantisCode.EmailSender</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
