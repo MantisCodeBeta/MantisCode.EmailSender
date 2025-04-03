@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace MantisCode.EmailSender.Repositories;
 
-internal class EmailDictionaryCommandRepository : IEmailDictionaryCommandRepository
+public class EmailDictionaryCommandRepository : IEmailDictionaryCommandRepository
 {
     public async Task<bool> CreateEmailDictionariesTable(string connectionString, DatabaseProviderEnum provider)
     {

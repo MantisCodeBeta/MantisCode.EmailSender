@@ -2,7 +2,7 @@
 
 namespace MantisCode.EmailSender.Interfaces;
 
-internal interface IEmailDictionaryCommandRepository
+public interface IEmailDictionaryCommandRepository
 {
     Task<bool> CreateEmailDictionariesTable(string connectionString, DatabaseProviderEnum provider);
 }

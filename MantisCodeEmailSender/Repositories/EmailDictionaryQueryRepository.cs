@@ -7,7 +7,7 @@ using MantisCode.EmailSender.Enums;
 
 namespace MantisCode.EmailSender.Repositories;
 
-internal class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
+public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
 {
     public async Task<EmailDictionaries?> GetEmailDictionaryByIdAsync(int id, string connectionString, DatabaseProviderEnum provider)
     {
