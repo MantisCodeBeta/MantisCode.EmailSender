@@ -1,0 +1,6 @@
+@MantisCode.EmailSender.Test_HostAddress = http://localhost:5161
+
+GET {{MantisCode.EmailSender.Test_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

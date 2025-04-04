@@ -1,31 +1,27 @@
-﻿using MantisCodeEmailSender.Models;
+﻿using MantisCode.EmailSender.Models;
 using System.Net.Mail;
 using System.Net;
-using MantisCodeEmailSender.Interfaces;
-using System.Text;
 using MantisCode.EmailSender.Interfaces;
+using System.Text;
 using MantisCode.EmailSender.Enums;
 
-namespace MantisCodeEmailSender;
+namespace MantisCode.EmailSender;
 
-public class SmtpEmailSender(SmtpSettings smtpSettings, 
-    IEmailDictionaryCommandRepository emailDictionaryCommand, 
-    IEmailDictionaryQueryRepository emailDictionaryQuery) : IEmailSender
+internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryCommand, 
+    IEmailDictionaryQueryRepository emailDictionaryQuery) : ISmtpService
 {
-    public DatabaseProviderEnum? DatabaseProviderEnum { get; set; } = null;
-    private readonly SmtpSettings _smtpSettings = smtpSettings ?? throw new ArgumentNullException(nameof(smtpSettings));
+    private readonly SmtpSettings _smtpSettings = SmtpClientOptions.SmtpSettings ?? throw new ArgumentNullException(nameof(SmtpClientOptions.SmtpSettings));
     private static bool IsTableCreated { get; set; } = false;
 
-    public async Task<SmtpEmailSenderResponse> SendEmailAsyncWithDictionaries(EmailMessage message, EmailBuilder emailBuilder, int emailTypeId, string connectionString, DatabaseProviderEnum databaseProvider)
+    public async Task<SmtpEmailSenderResponse> SendEmailWithDictionariesAsync(EmailMessage message, EmailBuilder emailBuilder, int emailTypeId)
     {
         SmtpEmailSenderResponse response = new() { Success = true };
         try
         {
-            if (DatabaseProviderEnum is null)
-                throw new Exception("Database Provider Not Set");
-            if (!IsTableCreated && !emailDictionaryQuery.IsDictionaryTableCreatedAsync(connectionString, databaseProvider).Result)
+            var isCreated = await emailDictionaryQuery.IsDictionaryTableCreatedAsync();
+            if (!IsTableCreated && !emailDictionaryQuery.IsDictionaryTableCreatedAsync().Result)
             {
-                await emailDictionaryCommand.CreateEmailDictionariesTable(connectionString, databaseProvider);
+                await emailDictionaryCommand.CreateEmailDictionariesTable();
                 IsTableCreated = true;
             }
 
@@ -37,7 +33,7 @@ public class SmtpEmailSender(SmtpSettings smtpSettings,
                 Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
             };
 
-            var email = await emailDictionaryQuery.GetEmailDictionaryByIdAsync(emailTypeId, connectionString, databaseProvider) ?? throw new Exception("Email Type With Specified Id Not Found");
+            var email = await emailDictionaryQuery.GetEmailDictionaryByIdAsync(emailTypeId) ?? throw new Exception("Email Type With Specified Id Not Found");
             var subject = email.Subject;
             var body = email.Body ?? email.BodyAsHtml;
             if (emailBuilder.Count() != email.ReplacementQuantity)
@@ -53,13 +49,12 @@ public class SmtpEmailSender(SmtpSettings smtpSettings,
             using var mailMessage = new MailMessage
             {
                 From = new MailAddress(message.From),
-                Subject = message.Subject,
-                Body = message.Body,
-                IsBodyHtml = message.IsBodyHtml
+                Subject = email.Subject,
+                Body = body,
+                IsBodyHtml = !string.IsNullOrEmpty(email.BodyAsHtml)
             };
             foreach (var recipient in message.To)
             {
-                mailMessage.IsBodyHtml = !string.IsNullOrEmpty(email.BodyAsHtml);
                 mailMessage.To.Add(recipient);
             }
             await smtpClient.SendMailAsync(mailMessage);
@@ -200,7 +195,7 @@ public class SmtpEmailSender(SmtpSettings smtpSettings,
 
 public class EmailBuilder
 {
-    private Dictionary<string, string> _replace = new Dictionary<string, string>();
+    private Dictionary<string, string> _replace = [];
     public void AddReplacement(string oldValue, string newValue)
     {
         _replace[oldValue] = newValue;

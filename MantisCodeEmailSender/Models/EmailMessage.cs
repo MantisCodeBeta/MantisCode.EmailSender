@@ -1,4 +1,4 @@
-﻿namespace MantisCodeEmailSender.Models;
+﻿namespace MantisCode.EmailSender.Models;
 
 public class EmailMessage
 {

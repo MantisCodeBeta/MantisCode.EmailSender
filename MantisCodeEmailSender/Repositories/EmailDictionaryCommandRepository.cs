@@ -6,15 +6,15 @@ using Npgsql;
 
 namespace MantisCode.EmailSender.Repositories;
 
-public class EmailDictionaryCommandRepository : IEmailDictionaryCommandRepository
+internal class EmailDictionaryCommandRepository : IEmailDictionaryCommandRepository
 {
-    public async Task<bool> CreateEmailDictionariesTable(string connectionString, DatabaseProviderEnum provider)
+    public async Task<bool> CreateEmailDictionariesTable()
     {
         try
         {
             string query;
 
-            if (provider == DatabaseProviderEnum.SQLServer)
+            if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.SqlServer)
             {
                 query = """
                         CREATE TABLE EmailDictionaries
@@ -28,11 +28,11 @@ public class EmailDictionaryCommandRepository : IEmailDictionaryCommandRepositor
                         )
                         """;
 
-                using var connection = new SqlConnection(connectionString);
+                using var connection = new SqlConnection(SmtpClientOptions.ConnectionString);
                 await connection.OpenAsync();
                 return await connection.ExecuteAsync(query) > 0;
             }
-            else if (provider == DatabaseProviderEnum.PostgreSQL)
+            else if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.PostgreSQL)
             {
                 query = """
                         CREATE TABLE EmailDictionaries
@@ -46,7 +46,7 @@ public class EmailDictionaryCommandRepository : IEmailDictionaryCommandRepositor
                         )
                         """;
 
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = new NpgsqlConnection(SmtpClientOptions.ConnectionString);
                 await connection.OpenAsync();
                 return await connection.ExecuteAsync(query) > 0;
             }

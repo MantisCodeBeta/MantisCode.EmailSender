@@ -7,15 +7,15 @@ using MantisCode.EmailSender.Enums;
 
 namespace MantisCode.EmailSender.Repositories;
 
-public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
+internal class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
 {
-    public async Task<EmailDictionaries?> GetEmailDictionaryByIdAsync(int id, string connectionString, DatabaseProviderEnum provider)
+    public async Task<EmailDictionaries?> GetEmailDictionaryByIdAsync(int id)
     {
         try
         {
             string query;
 
-            if (provider == DatabaseProviderEnum.SQLServer)
+            if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.SqlServer)
             {
                 query = """
                         SELECT Id, 
@@ -29,25 +29,35 @@ public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
                         AND ed.IsActive = 1
                         """;
 
-                using var connection = new SqlConnection(connectionString);
+                using var connection = new SqlConnection(SmtpClientOptions.ConnectionString);
                 await connection.OpenAsync();
                 return await connection.QueryFirstOrDefaultAsync<EmailDictionaries>(query, new { @Id = id });
             }
-            else if (provider == DatabaseProviderEnum.PostgreSQL)
+            else if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.PostgreSQL)
             {
                 query = """
-                        SELECT Id, 
-                               Body, 
-                               BodyAsHtml, 
-                               Subject, 
-                               ReplacementQuantity, 
-                               IsActive
-                        FROM "EmailDictionaries"
-                        WHERE Id = @Id
-                        AND IsActive = true
+                        SELECT ed."Id",
+                               ed."Body",
+                               ed."BodyAsHtml",
+                               ed."Subject",
+                               ed."ReplacementQuantity"
+                        FROM public."EmailDictionaries" AS ed
+                        WHERE ed."Id" = @Id
                         """;
 
-                using var connection = new NpgsqlConnection(connectionString);
+                //query = """
+                //        SELECT ed."Id",
+                //               ed."Body",
+                //               ed."BodyAsHtml",
+                //               ed."Subject",
+                //               ed."ReplacementQuantity",
+                //               ed."IsActive"
+                //        FROM public."EmailDictionaries" AS ed
+                //        WHERE ed."Id" = @Id
+                //        AND ed."IsActive" = true
+                //        """;
+
+                using var connection = new NpgsqlConnection(SmtpClientOptions.ConnectionString);
                 await connection.OpenAsync();
                 return await connection.QueryFirstOrDefaultAsync<EmailDictionaries>(query, new { @Id = id });
             }
@@ -62,11 +72,11 @@ public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
         }
     }
 
-    public async Task<bool> IsDictionaryTableCreatedAsync(string connectionString, DatabaseProviderEnum provider)
+    public async Task<bool> IsDictionaryTableCreatedAsync()
     {
         string query;
 
-        if (provider == DatabaseProviderEnum.SQLServer)
+        if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.SqlServer)
         {
             query = """
                 SELECT TABLE_NAME
@@ -74,11 +84,11 @@ public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
                 WHERE TABLE_NAME = 'EmailDictionaries'
             """;
 
-            using var connection = new SqlConnection(connectionString);
+            using var connection = new SqlConnection(SmtpClientOptions.ConnectionString);
             await connection.OpenAsync();
             return await connection.QueryFirstOrDefaultAsync<string>(query) != null;
         }
-        else if (provider == DatabaseProviderEnum.PostgreSQL)
+        else if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.PostgreSQL)
         {
             query = """
                 SELECT tablename
@@ -86,7 +96,7 @@ public class EmailDictionaryQueryRepository : IEmailDictionaryQueryRepository
                 WHERE tablename = 'emaildictionaries'
             """;
 
-            using var connection = new NpgsqlConnection(connectionString);
+            using var connection = new NpgsqlConnection(SmtpClientOptions.ConnectionString);
             await connection.OpenAsync();
             return await connection.QueryFirstOrDefaultAsync<string>(query) != null;
         }
