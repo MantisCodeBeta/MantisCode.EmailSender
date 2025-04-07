@@ -1,13 +1,12 @@
-﻿using MantisCode.EmailSender.Models;
-using System.Net.Mail;
+﻿using MantisCode.EmailSender.Interfaces;
+using MantisCode.EmailSender.Models;
 using System.Net;
-using MantisCode.EmailSender.Interfaces;
+using System.Net.Mail;
 using System.Text;
-using MantisCode.EmailSender.Enums;
 
 namespace MantisCode.EmailSender;
 
-internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryCommand, 
+internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryCommand,
     IEmailDictionaryQueryRepository emailDictionaryQuery) : ISmtpService
 {
     private readonly SmtpSettings _smtpSettings = SmtpClientOptions.SmtpSettings ?? throw new ArgumentNullException(nameof(SmtpClientOptions.SmtpSettings));
@@ -73,7 +72,7 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
     {
         SmtpEmailSenderResponse response = new() { Success = true };
         try
-        {            
+        {
             using var smtpClient = new SmtpClient
             {
                 Host = _smtpSettings.Host,
@@ -132,7 +131,7 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
                 await smtpClient.SendMailAsync(mailMessage);
                 mailMessage.Dispose();
             }
-            
+
             smtpClient.Dispose();
             return response;
         }
@@ -179,7 +178,7 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
             response.Success = false;
             return response;
         }
-        
+
     }
     private static string ReplaceBodyVariables(string body, Dictionary<string, string> bodyVariableValues)
     {
