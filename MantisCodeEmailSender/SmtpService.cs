@@ -10,7 +10,7 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
     IEmailDictionaryQueryRepository emailDictionaryQuery) : ISmtpService
 {
     private readonly SmtpSettings _smtpSettings = SmtpClientOptions.SmtpSettings ?? throw new ArgumentNullException(nameof(SmtpClientOptions.SmtpSettings));
-    private static bool IsTableCreated { get; set; } = false;
+    private static bool IsTableCreated { get; set; }
 
     public async Task<SmtpEmailSenderResponse> SendEmailWithDictionariesAsync(EmailMessage message, EmailBuilder emailBuilder, int emailTypeId)
     {
