@@ -17,14 +17,13 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
         SmtpEmailSenderResponse response = new() { Success = true };
         try
         {
-            var isCreated = await emailDictionaryQuery.IsDictionaryTableCreatedAsync();
             if (!IsTableCreated && !emailDictionaryQuery.IsDictionaryTableCreatedAsync().Result)
             {
                 await emailDictionaryCommand.CreateEmailDictionariesTable();
                 IsTableCreated = true;
             }
 
-            using var smtpClient = new SmtpClient
+            using SmtpClient smtpClient = new()
             {
                 Host = _smtpSettings.Host,
                 Port = _smtpSettings.Port,
@@ -32,31 +31,32 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
                 Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
             };
 
-            var email = await emailDictionaryQuery.GetEmailDictionaryByIdAsync(emailTypeId) ?? throw new Exception("Email Type With Specified Id Not Found");
-            var subject = email.Subject;
-            var body = email.Body ?? email.BodyAsHtml;
+            EmailDictionaries? email = await emailDictionaryQuery.GetEmailDictionaryByIdAsync(emailTypeId) ?? throw new Exception("Email Type With Specified Id Not Found");
+            string? body = email.Body ?? email.BodyAsHtml;
             if (emailBuilder.Count() != email.ReplacementQuantity)
                 throw new Exception("Insufficient Replaceble Variables To Build Email");
 
-            foreach (var replace in emailBuilder.Get())
+            foreach (KeyValuePair<string, string> replace in emailBuilder.Get())
             {
-                if (body!.IndexOf(replace.Key) < 0)
+                if (body.IndexOf(replace.Key, StringComparison.OrdinalIgnoreCase) < 0)
                     throw new Exception("Incorrect Replaceable Variables To Build Email");
                 body = body.Replace(replace.Key, replace.Value);
             }
 
-            using var mailMessage = new MailMessage
+            using MailMessage mailMessage = new()
             {
                 From = new MailAddress(message.From),
                 Subject = email.Subject,
                 Body = body,
                 IsBodyHtml = !string.IsNullOrEmpty(email.BodyAsHtml)
             };
-            foreach (var recipient in message.To)
+            foreach (string? recipient in message.To)
             {
                 mailMessage.To.Add(recipient);
             }
             await smtpClient.SendMailAsync(mailMessage);
+            smtpClient.Dispose();
+            mailMessage.Dispose();
 
             return response;
         }
@@ -73,14 +73,14 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
         SmtpEmailSenderResponse response = new() { Success = true };
         try
         {
-            using var smtpClient = new SmtpClient
+            using SmtpClient smtpClient = new()
             {
                 Host = _smtpSettings.Host,
                 Port = _smtpSettings.Port,
                 EnableSsl = _smtpSettings.EnableSsl,
                 Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
             };
-            using var mailMessage = new MailMessage
+            using MailMessage mailMessage = new()
             {
                 From = new MailAddress(message.From),
                 Subject = message.Subject,
@@ -88,7 +88,7 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
                 IsBodyHtml = message.IsBodyHtml
             };
 
-            foreach (var recipient in message.To)
+            foreach (string? recipient in message.To)
                 mailMessage.To.Add(recipient);
             await smtpClient.SendMailAsync(mailMessage);
 
@@ -109,16 +109,16 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
         SmtpEmailSenderResponse response = new() { Success = true };
         try
         {
-            using var smtpClient = new SmtpClient
+            using SmtpClient smtpClient = new()
             {
                 Host = _smtpSettings.Host,
                 Port = _smtpSettings.Port,
                 EnableSsl = _smtpSettings.EnableSsl,
                 Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
             };
-            foreach (var message in messages)
+            foreach (EmailMessage? message in messages)
             {
-                using var mailMessage = new MailMessage
+                using MailMessage mailMessage = new()
                 {
                     From = new MailAddress(message.From),
                     Subject = message.Subject,
@@ -126,7 +126,7 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
                     IsBodyHtml = message.IsBodyHtml
                 };
 
-                foreach (var recipient in message.To)
+                foreach (string? recipient in message.To)
                     mailMessage.To.Add(recipient);
                 await smtpClient.SendMailAsync(mailMessage);
                 mailMessage.Dispose();
@@ -149,22 +149,22 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
         try
         {
             var body = ReplaceBodyVariables(message.Body, bodyVariableValues);
-            using var smtpClient = new SmtpClient
+            using SmtpClient smtpClient = new()
             {
                 Host = _smtpSettings.Host,
                 Port = _smtpSettings.Port,
                 EnableSsl = _smtpSettings.EnableSsl,
                 Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
             };
-            using var mailMessage = new MailMessage
+            using MailMessage mailMessage = new()
             {
                 From = new MailAddress(message.From),
                 Subject = message.Subject,
-                Body = message.Body,
+                Body = body,
                 IsBodyHtml = message.IsBodyHtml
             };
 
-            foreach (var recipient in message.To)
+            foreach (string? recipient in message.To)
                 mailMessage.To.Add(recipient);
             await smtpClient.SendMailAsync(mailMessage);
 
@@ -183,11 +183,10 @@ internal class SmtpService(IEmailDictionaryCommandRepository emailDictionaryComm
     private static string ReplaceBodyVariables(string body, Dictionary<string, string> bodyVariableValues)
     {
         StringBuilder newBody = new(body);
-        foreach (var variable in bodyVariableValues)
-        {
-            if (body.Contains($"{{{variable.Key}}}"))
-                newBody = newBody.Replace($"{{{variable.Key}}}", variable.Value);
-        }
+        newBody = bodyVariableValues.Where(variable => 
+            body.Contains($"{{{variable.Key}}}")).Aggregate(newBody, (current, variable) => 
+                current.Replace($"{{{variable.Key}}}", variable.Value)
+            );
         return newBody.ToString();
     }
 }

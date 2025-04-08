@@ -3,5 +3,5 @@
 public enum DatabaseProviderEnum
 {
     SqlServer,
-    PostgreSQL
+    PostgreSql
 }

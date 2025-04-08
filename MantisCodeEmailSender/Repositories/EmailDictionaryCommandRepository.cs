@@ -14,45 +14,47 @@ internal class EmailDictionaryCommandRepository : IEmailDictionaryCommandReposit
         {
             string query;
 
-            if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.SqlServer)
+            switch (SmtpClientOptions.DatabaseProvider)
             {
-                query = """
-                        CREATE TABLE EmailDictionaries
-                        (
-                            Id INT PRIMARY KEY IDENTITY(1, 1),
-                            Body NVARCHAR(MAX),
-                            BodyAsHtml NVARCHAR(MAX),
-                            Subject NVARCHAR(MAX),
-                            ReplacementQuantity INT,
-                            IsActive BIT
-                        )
-                        """;
+                case DatabaseProviderEnum.SqlServer:
+                {
+                    query = """
+                            CREATE TABLE EmailDictionaries
+                            (
+                                Id INT PRIMARY KEY IDENTITY(1, 1),
+                                Body NVARCHAR(MAX),
+                                BodyAsHtml NVARCHAR(MAX),
+                                Subject NVARCHAR(MAX),
+                                ReplacementQuantity INT,
+                                IsActive BIT
+                            )
+                            """;
 
-                using var connection = new SqlConnection(SmtpClientOptions.ConnectionString);
-                await connection.OpenAsync();
-                return await connection.ExecuteAsync(query) > 0;
-            }
-            else if (SmtpClientOptions.DatabaseProvider == DatabaseProviderEnum.PostgreSQL)
-            {
-                query = """
-                        CREATE TABLE EmailDictionaries
-                        (
-                            Id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                            Body VARCHAR,
-                            BodyAsHtml VARCHAR,
-                            Subject VARCHAR,
-                            ReplacementQuantity INT,
-                            IsActive BOOLEAN
-                        )
-                        """;
+                    await using SqlConnection connection = new(SmtpClientOptions.ConnectionString);
+                    await connection.OpenAsync();
+                    return await connection.ExecuteAsync(query) > 0;
+                }
+                case DatabaseProviderEnum.PostgreSql:
+                {
+                    query = """
+                            CREATE TABLE EmailDictionaries
+                            (
+                                Id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                Body VARCHAR,
+                                BodyAsHtml VARCHAR,
+                                Subject VARCHAR,
+                                ReplacementQuantity INT,
+                                IsActive BOOLEAN
+                            )
+                            """;
 
-                using var connection = new NpgsqlConnection(SmtpClientOptions.ConnectionString);
-                await connection.OpenAsync();
-                return await connection.ExecuteAsync(query) > 0;
+                    await using NpgsqlConnection connection = new(SmtpClientOptions.ConnectionString);
+                    await connection.OpenAsync();
+                    return await connection.ExecuteAsync(query) > 0;
+                }
+                default:
+                    throw new NotSupportedException("Unsupported database provider.");
             }
-            else
-                throw new NotSupportedException("Unsupported database provider.");
-            
         }
         catch (Exception ex)
         {
