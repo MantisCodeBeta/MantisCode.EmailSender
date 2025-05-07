@@ -23,4 +23,20 @@ public static class Extensions
 
         return services;
     }
+
+    public static IServiceCollection SmtpClientBuilderSingleton(this IServiceCollection services, SmtpSettings smtpSettings, string connectionString, DatabaseProviderEnum databaseProvider = DatabaseProviderEnum.SqlServer)
+    {
+        if (string.IsNullOrEmpty(connectionString))
+            throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null or empty.");
+
+        services.AddSingleton<IEmailDictionaryCommandRepository, EmailDictionaryCommandRepository>();
+        services.AddSingleton<IEmailDictionaryQueryRepository, EmailDictionaryQueryRepository>();
+        services.AddSingleton<ISmtpService, SmtpService>();
+
+        SmtpClientOptions.SmtpSettings = smtpSettings;
+        SmtpClientOptions.DatabaseProvider = databaseProvider;
+        SmtpClientOptions.ConnectionString = connectionString;
+
+        return services;
+    }
 }
